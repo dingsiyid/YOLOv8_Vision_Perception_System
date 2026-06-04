@@ -1,0 +1,4 @@
+Object Detection (Fast)
+Object Detection (Balanced)
+Instance Segmentation
+Pose Estimation
