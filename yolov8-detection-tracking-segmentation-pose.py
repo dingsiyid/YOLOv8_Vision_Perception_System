@@ -133,20 +133,28 @@ def view_result(result: Results, result_list_json, centers=None):
     image = result.plot(labels=False, line_width=2)
     for res in result_list_json:
         class_color = COLORS[res['class_id'] % len(COLORS)]
-        text = f"{res['class']} #{res['object_id']}: {res['confidence']:.2f}" if 'object_id' in res else f"{res['class']}: {res['confidence']:.2f}"
+        # 关键修复：只有当 object_id 存在、不为 None 且为有效整数时才显示 ID
+        if 'object_id' in res and res['object_id'] is not None:
+            text = f"{res['class']} #{res['object_id']}: {res['confidence']:.2f}"
+        else:
+            text = f"{res['class']}: {res['confidence']:.2f}"
         (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.75, 2)
         cv2.rectangle(image, (res['bbox']['x_min'], res['bbox']['y_min'] - text_height - baseline), 
                       (res['bbox']['x_min'] + text_width, res['bbox']['y_min']), class_color, -1)
         cv2.putText(image, text, (res['bbox']['x_min'], res['bbox']['y_min'] - baseline), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), 2)
-        if 'object_id' in res and centers is not None:
-            centers[res['object_id']].append((int((res['bbox']['x_min'] + res['bbox']['x_max']) / 2), 
-                                               int((res['bbox']['y_min'] + res['bbox']['y_max']) / 2)))
-            for j in range(1, len(centers[res['object_id']])):
-                if centers[res['object_id']][j - 1] is None or centers[res['object_id']][j] is None:
-                    continue
-                thickness = int(np.sqrt(64 / float(j + 1)) * 2)
-                cv2.line(image, centers[res['object_id']][j - 1], centers[res['object_id']][j], class_color, thickness)
+        # 关键修复：只有当 object_id 存在且不为 None 时才使用追踪功能
+        if 'object_id' in res and centers is not None and res['object_id'] is not None:
+            object_id = res['object_id']
+            # 确保 object_id 是有效的整数索引
+            if isinstance(object_id, int) and object_id >= 0 and object_id < len(centers):
+                centers[object_id].append((int((res['bbox']['x_min'] + res['bbox']['x_max']) / 2), 
+                                           int((res['bbox']['y_min'] + res['bbox']['y_max']) / 2)))
+                for j in range(1, len(centers[object_id])):
+                    if centers[object_id][j - 1] is None or centers[object_id][j] is None:
+                        continue
+                    thickness = int(np.sqrt(64 / float(j + 1)) * 2)
+                    cv2.line(image, centers[object_id][j - 1], centers[object_id][j], class_color, thickness)
     return image
 
 
