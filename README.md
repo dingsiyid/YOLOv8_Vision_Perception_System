@@ -45,7 +45,7 @@ pip install -r requirements.txt
 python -c "from ultralytics import YOLO; YOLO('yolov8n.pt'); YOLO('yolov8s.pt'); YOLO('yolov8n-seg.pt'); YOLO('yolov8n-pose.pt')"
 ```
 
-模型会自动保存到 `models/` 目录。
+模型要保存到 `models/` 目录。
 
 ## 🚀 运行应用
 
